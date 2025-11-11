@@ -4,3 +4,5 @@ scikit-learn
 kaggle
 kagglehub
 python-dotenv
+pytrends
+time

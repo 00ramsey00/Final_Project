@@ -1,77 +1,85 @@
+#This code will pull data from 3 locations:
+#Kaggle Housing Prices, Federal Reserve 30-Year Fixed Mortgage Rates, and Google Trends-Homes for sale
+#Data will be saved as CSV files in "data" folder in the parent directory
+
 import os
 import pandas as pd
 from dotenv import load_dotenv
-#os.environ["KAGGLE_CONFIG_DIR"] = r"C:\Users\rpbas\Desktop\Fall 2025 DSCI 510\Final Project\Final_Project_Ramsey_Basma\Final_Project\src"
 import requests
+from pytrends.request import TrendReq
+import time
+#kaggle is also imported below but needs to be below path normalization
 
 # Load environment variables from .env file
 load_dotenv()  # By default it loads from a file named .env in the same folder
+# this is used to protect API keys and to avoid having them directly in this code for security purposes
 
-# Set Kaggle config directory from the .env file
+
+#----------------------API INFORMATION---------------------------
+# Set Kaggle config directory from the .env file instead of using the default location
 kaggle_config_dir = os.getenv("KAGGLE_CONFIG_DIR")
 if not kaggle_config_dir:
     raise ValueError("KAGGLE_CONFIG_DIR is not set in the .env file")
 
-# Set FRED config directory from the .env file
-fred_api_key = os.getenv("FRED_API_KEY")
-if not fred_api_key:
+# Set FRED API from the .env file
+FRED_API_KEY = os.getenv("FRED_API_KEY")
+if not FRED_API_KEY:
     raise ValueError("FRED_API_KEY is not set in the .env file")
 
+#Google API not needed
+
+#-----------------------------------------------------------------
 
 
 
-
-
-# Normalize path for Windows/Mac/Linux
-kaggle_config_dir = os.path.normpath(kaggle_config_dir)
-os.environ["KAGGLE_CONFIG_DIR"] = kaggle_config_dir
-print("Using Kaggle config dir:", kaggle_config_dir)
-
-import kaggle
-
-
-
-# --- Find parent 'data' folder ---
+#------------Set up "data" folder location in parent folder------------------
 # Get the parent directory of the current script
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Create the 'data' folder if it doesn’t exist
 extract_dir = os.path.join(project_root, "data")
 os.makedirs(extract_dir, exist_ok=True)
+#-----------------------------------------------------------------
 
 
 
 
-# --- 1. Download Zillow dataset from Kaggle ---
+#----------------------KAGGLE - Housing Prices Data Collection---------------------------
+os.environ["KAGGLE_CONFIG_DIR"] = kaggle_config_dir  #Location of Kaggle API Key found from .env file
+#print("Using Kaggle config dir:", kaggle_config_dir)
+
+import kaggle #This needs to be here after environment variable is set
+
+
+#Download Zillow dataset from Kaggle
 dataset = 'ahmedshahriarsakib/usa-real-estate-dataset'
-#extract_dir = 'data'
-#os.makedirs(extract_dir, exist_ok=True)
 
-print("Downloading Zillow data from Kaggle...")
+print("Fetching Housing Price data from Kaggle...")
 kaggle.api.dataset_download_files(dataset, path=extract_dir, unzip=True)
 
-# --- 2. Find and load CSV file ---
+#Find and load CSV file from the zip folder and put it into data folder
+#From this Kaggle dataset, there's only one CSV file so no need to tweak this code. It's good enough
 csv_file = [f for f in os.listdir(extract_dir) if f.endswith('.csv')][0]
 csv_path = os.path.join(extract_dir, csv_file)
 
 df = pd.read_csv(csv_path)
-print("Data loaded:", df.shape)
-print(df.columns)
+#print("Data loaded:", df.shape)
+#print(df.columns)
+#-----------------------------------------------------------------------------------------------
 
 
 
-
-# --- 1. Define the FRED API details ---
+#----------------------FRED - 30-Year Fixed Mortgage Rates---------------------------
 FRED_SERIES_ID = "MORTGAGE30US"
 FRED_API_URL = f"https://api.stlouisfed.org/fred/series/observations"
 
 params = {
     "series_id": FRED_SERIES_ID,
-    "api_key": fred_api_key,
+    "api_key": FRED_API_KEY,
     "file_type": "json"
 }
 
-# --- 2. Request data from FRED ---
+#Request data from FRED
 print(f"Fetching 30-Year Fixed Mortgage Rates ({FRED_SERIES_ID}) from FRED...")
 response = requests.get(FRED_API_URL, params=params)
 response.raise_for_status()  # Raises an error if request failed
@@ -82,15 +90,60 @@ observations = data.get("observations", [])
 if not observations:
     raise ValueError("No data returned from FRED API")
 
-# --- 3. Convert to pandas DataFrame ---
+#Convert to pandas DataFrame
 df = pd.DataFrame(observations)
-print(f"Data successfully loaded: {df.shape[0]} records")
+#print(f"Data successfully loaded: {df.shape[0]} records")
 
-# --- 4. Save raw data to CSV ---
-#save_dir = "data"
-#os.makedirs(save_dir, exist_ok=True)
-
+#Save raw data to CSV
 output_path = os.path.join(extract_dir, "mortgage_rates.csv")
 df.to_csv(output_path, index=False)
 
-print(f"Mortgage rate data saved to: {output_path}")
+#print(f"Mortgage rate data saved to: {output_path}")
+#-----------------------------------------------------------------------------------------------
+
+
+
+
+
+#------------------------------Google Trends - "Homes for sale"------------------------------
+
+#Download Google Search Interest Data (via pytrends) ---
+print("Fetching Google Trends data for 'homes for sale'...")
+
+#Create a clean Trends session with explicit connection headers to avoid being banned as a bot
+pytrends = TrendReq(
+    hl='en-US',
+    tz=360,
+    requests_args={
+        'headers': {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                          'AppleWebKit/537.36 (KHTML, like Gecko) '
+                          'Chrome/118.0.5993.90 Safari/537.36'
+        }
+    }
+)
+
+#Give Google a short pause between actions to prevent being blocked
+time.sleep(10)
+
+#Pick data we want
+kw_list = ["homes for sale"]
+pytrends.build_payload(kw_list, timeframe='2014-01-01 2024-12-31', geo='US')
+
+#Pause again before fetch
+time.sleep(10)
+df_trends = pytrends.interest_over_time()
+
+#Check
+if df_trends.empty:
+    raise ValueError("No data returned from Google Trends for 'homes for sale'")
+
+#Save
+output_path = os.path.join(extract_dir, "google_trends_homes_for_sale.csv")
+df_trends.to_csv(output_path)
+#print(f"Google Trends data saved to: {output_path}")
+#print("Data loaded:", df_trends.shape)
+#print(df_trends.head())
+#-----------------------------------------------------------------------------------------------
+
+print("All data loaded.")
