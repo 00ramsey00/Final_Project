@@ -1,6 +1,8 @@
 # Specific ignores for my code
 data/
 results/
+kaggle.json
+fred.txt
 
 #The following is default python ignore commands downloaded from https://github.com/github/gitignore/blob/main/Python.gitignore
 
