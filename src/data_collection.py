@@ -124,14 +124,14 @@ pytrends = TrendReq(
 )
 
 #Give Google a short pause between actions to prevent being blocked
-time.sleep(10)
+time.sleep(15)
 
 #Pick data we want
 kw_list = ["homes for sale"]
 pytrends.build_payload(kw_list, timeframe='2014-01-01 2024-12-31', geo='US')
 
 #Pause again before fetch
-time.sleep(10)
+time.sleep(15)
 df_trends = pytrends.interest_over_time()
 
 #Check
