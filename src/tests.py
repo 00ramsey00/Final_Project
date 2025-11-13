@@ -1,3 +1,4 @@
+import argparse
 from data_collection import (
     load_env,
     set_directories_and_keys,
@@ -7,8 +8,26 @@ from data_collection import (
     GTrends_Homes_Selling
 )
 
-if __name__ == "__main__":
-    print("Running tests for HW11: Data Collection")
+def main():
+    # -------------------- Command-Line Arguments --------------------
+    parser = argparse.ArgumentParser(
+        description="Run full data collection pipeline (Kaggle, FRED, Google Trends)."
+    )
+    parser.add_argument(
+        "--sleep",
+        type=int,
+        default=20,#Wait time between google requests. This is here so you can speed it up if it works for you.
+        #Default is 20 seconds which is what worked for me. This is used two times so 40 seconds total.
+        help="Time (in seconds) to wait between Google Trends requests (default: 20)."
+    )
+
+    args = parser.parse_args()
+
+    args.sleep = max(1, min(args.sleep, 30)) #Prevents accidentally putting too low of a sleep time or too high
+
+
+
+    print("Running tests for Final Progress Report: Data Collection")
 
     # -------------------- Setup --------------------
     #print("Loading environment variables and directories...")
@@ -26,11 +45,12 @@ if __name__ == "__main__":
     # -------------------- Task 3 --------------------
     #print("Task 3: Google Trends Data")
 
-    time_sleep = 20 #Wait time between google requests. This is here so you can speed it up if it works for you.
-    #Default is 20 seconds which is what worked for me. This is used two times so 40 seconds total.
-
-    GTrends_Homes_Selling(extract_dir,time_sleep)
+    GTrends_Homes_Selling(extract_dir,args.sleep) #By default, args.sleep is 20 seconds (40 total). Change it above.
 
 
 
     print("All data successfully collected and saved.")
+
+
+if __name__ == "__main__":
+    main()
