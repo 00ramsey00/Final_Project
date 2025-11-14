@@ -23,7 +23,7 @@ This project explores whether housing demand (via google searches) moves with mo
 
 ### 2 | 30-Year Fixed Mortgage Rates
 - **Source:** Federal Reserve Economic Data (FRED API)  
-- **URL:** https://api.stlouisfed.org/fred/series/observations  
+- **URL:** https://fred.stlouisfed.org/docs/api/fred/series_observations.html#Description 
 - **Type:** API  
 - **Fields:**  
   • Date  
@@ -54,7 +54,7 @@ TBD
 
 ## Installation
 
-In `.env` file, set the following:
+In `.env.example` file, set the following and rename to `.env`:
 
 ```
 KAGGLE_CONFIG_DIR= #Folder location of your kaggle.json file
