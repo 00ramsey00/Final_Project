@@ -157,7 +157,12 @@ def GTrends_Homes_Selling(extract_dir, time_sleep: int):
 if __name__ == "__main__":
     load_env()
     set_directories_and_keys()
-    kaggle_housing()
-    FRED_mortgage()
-    GTrends_Homes_Selling()
+    extract_dir = create_data_folder()
+    kaggle_housing(extract_dir)
+    FRED_mortgage(extract_dir)
+
+    time_sleep = 20 #Wait time between google requests. This is here so you can speed it up if it works for you.
+    #Default is 20 seconds which is what worked for me. This is used two times so 40 seconds total.
+    GTrends_Homes_Selling(extract_dir, time_sleep)
+
     print("All data successfully collected and saved.")
