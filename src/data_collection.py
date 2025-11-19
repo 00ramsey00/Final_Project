@@ -135,7 +135,7 @@ def GTrends_Homes_Selling(extract_dir, time_sleep: int):
 
     #Pick data we want
     kw_list = ["homes for sale"]
-    pytrends.build_payload(kw_list, timeframe='2014-01-01 2024-12-31', geo='US')
+    pytrends.build_payload(kw_list, timeframe='2004-12-31 2024-12-31', geo='US')
 
     #Pause again before fetch
     time.sleep(time_sleep)
