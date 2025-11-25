@@ -1,6 +1,8 @@
 # Title: The Relationship Between Online Housing Interest, Mortgage Rates, and Home Prices
 
-This project explores whether housing demand (via google searches) moves with mortgage rates and prices. By analyzing median home prices, 30-year mortgage rates, and Google search interest (for the 20 years), the study aims to uncover how public interest and mortgage rates together predict housing market trends. By using time-series analysis, smoothed trend lines, correlation matrices, and regression plots of publicly available data, the project will assess correlations, providing insights into how early indicators like Google Trends might anticipate changes in housing affordability and market activity. All data collection, processing, and analyzing is completed using a fully automated Python pipeline, publicly available on GitHub.
+This project explores whether housing demand (via google searches) moves with mortgage rates and prices. By analyzing median home prices, 30-year mortgage rates, and Google search interest (for the 20 years), the study aims to uncover how public interest and mortgage rates together predict housing market trends. 
+
+By using time-series analysis, smoothed trend lines, correlation matrices, and regression plots of publicly available data, the project will assess correlations, providing insights into how early indicators like Google Trends might anticipate changes in housing affordability and market activity. All data collection, processing, and analyzing is completed using a fully automated Python pipeline, publicly available on GitHub.
 
 ---
 
@@ -52,18 +54,20 @@ This project explores whether housing demand (via google searches) moves with mo
 
 (See PowerPoint in `doc/` folder.)
 
-Do early indicators such as Google Trends anticipate changes in housing affordability and market activity? 
-  -No, not with this specific data set. Correlation is not strong enough.
+### **Do early indicators such as Google Trends anticipate changes in housing affordability and market activity?**
+**No** — not with this specific data set. Correlation is not strong enough.
 
-Do rates and prices move with Google search trends?
-  -Not prices but rates do. Higher the rates, lower the general public’s 	interest in purchasing a home.
+### **Do rates and prices move with Google search trends?**
+**Not prices but rates do** — Higher the rates, lower the general public’s 	interest in purchasing a home.
 
-Any future considerations?
-  -Yes, consider additional housing price data with more precise filters, include additional Google search terms (currently limited by amount of requests), consider shorter analysis periods with major events removed.
+### **Any future considerations?**
+**Yes** — consider additional housing price data with more precise filters, include additional Google search terms (currently limited by amount of requests), consider shorter analysis periods with major events removed.
 
-Additional Notes:
+### **Additional Notes:**
 -Though the real estate data contained over 2 million data points, it could still be skewed in terms of whether some states had more data than others or whether more data was collected in specific years than others.
+
 -It is possible to filter housing price and google trend data by state but mortgage rate is federal and cannot be further filtered.
+
 -Percentage and directional changes were derived but ultimately not used due to lack of experience in data analysis.
 
 ---
@@ -109,7 +113,9 @@ json             # Parses and converts data between JSON and Python dictionaries
 From `src/` directory, open and run `tests.py`  
 
 Data will appear in `data/` folder.
+
 Processed data will appear in `data/processed` folder.
+
 Results will appear in `results/` folder.
 
 ---
@@ -128,14 +134,16 @@ python tests.py --load
 
 Data will appear in `data/` folder.
 
-Optional: To adjust the sleep time between google requests for the Pytrends Homes for Sales function, input:
+Optional: To adjust the sleep time between google requests, input:
 
 ```
 python tests.py --load --sleep 15
 ```
 
+
 Note: Min time 1 second, max 50 seconds. The program sleeps twice during the Google Trends pull. 
-Note: This can also be adjusted in the `tests.py` file
+
+Note: This can also be adjusted in the `config.py` file
 
 
 
@@ -181,9 +189,13 @@ OR
 python tests.py
 ```  
 
+
 Data will appear in `data/` folder.
+
 Processed data will appear in `data/processed` folder.
+
 Results will appear in `results/` folder.
+
 
 
 Optionally run:
