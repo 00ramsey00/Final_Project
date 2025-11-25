@@ -4,6 +4,8 @@ requests
 kaggle
 python-dotenv
 pytrends
+matplotlib.pyplot
+seaborn
 
 #The following are standard with Python's library
 time
