@@ -1,6 +1,7 @@
 # Specific ignores for my code
 data/
 results/
+.idea/
 kaggle.json
 fred.txt
 
