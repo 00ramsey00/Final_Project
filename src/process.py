@@ -3,31 +3,41 @@
 
 
 import pandas as pd
+from pathlib import Path
 import os
 from config import (
     DATA_DIR, PROCESSED_DIR,
     KAGGLE_NAME, FRED_NAME, GOOGLE_NAME,
     KAGGLE_NAME_CLEAN, FRED_NAME_CLEAN, GOOGLE_NAME_CLEAN, MERGED_CLEAN,
     START_DATE, END_DATE,
+    GOOGLE_SEARCH_TERM,
 )
 
 
-def clear_processed_folder():
+def clear_processed_folder(processed_dir=PROCESSED_DIR):
     # ----- CLEAN DATA/PROCESSED FOLDER BEFORE STARTING -----
-    for f in os.listdir(PROCESSED_DIR):
+    for f in os.listdir(processed_dir):
         if f.endswith(".csv"):
-            os.remove(PROCESSED_DIR / f)
+            os.remove(processed_dir / f)
     #print("Cleaned old CSV files from data/processed directory.")
 
 
 # Process Realtor Data (using prev_sold_date as date)
-def process_realtor_data(filename: str) -> pd.DataFrame: #This is the CSV from Kaggle Housing Data
+def process_realtor_data(
+        filename: str = KAGGLE_NAME, #:str makes sure filename is a string
+        data_dir: Path = DATA_DIR, #:Path makes sure directory is in path format
+        processed_dir: Path = PROCESSED_DIR,
+        kaggle_name_clean: str = KAGGLE_NAME_CLEAN,
+        START_DATE = START_DATE,
+        END_DATE = END_DATE,
+    ) -> pd.DataFrame: #This is the CSV from Kaggle Housing Data
+
     # Only keep: prev_sold_date (renamed to 'date'), price, state
 
-    print("Cleaning Housing Price data from Kaggle...")
+    print(f"Cleaning {filename} from Kaggle...")
 
     # Get correct full path to data folder
-    full_path = DATA_DIR / filename
+    full_path = data_dir / filename
 
     # Load CSV file into DataFrame
     df = pd.read_csv(full_path)
@@ -57,18 +67,26 @@ def process_realtor_data(filename: str) -> pd.DataFrame: #This is the CSV from K
     df["date"] = df["date"].dt.strftime("%m/%d/%Y")
 
     # Save the cleaned version in the new processed folder
-    out_path = PROCESSED_DIR / KAGGLE_NAME_CLEAN
+    out_path = processed_dir / kaggle_name_clean
     df.to_csv(out_path, index=False)
 
     return df
 
 
 # Process FRED mortgage data (convert from weekly to monthly using averages for the months)
-def process_mortgage_data(filename: str) -> pd.DataFrame:
-    print("Cleaning 30-Year Fixed Mortgage Rates from FRED...")
+def process_mortgage_data(
+        filename: str = FRED_NAME, #:str makes sure filename is a string
+        data_dir: Path = DATA_DIR, #:Path makes sure directory is in path format
+        processed_dir: Path = PROCESSED_DIR,
+        fred_name_clean: str = FRED_NAME_CLEAN,
+        START_DATE = START_DATE,
+        END_DATE = END_DATE,
+    ) -> pd.DataFrame: #This is the CSV from FRED Mortgage Rates database
+
+    print(f"Cleaning {filename} from FRED...")
 
     # Get correct full path to data folder
-    full_path = DATA_DIR / filename
+    full_path = data_dir / filename
 
     # Load the CSV
     df = pd.read_csv(full_path)
@@ -99,18 +117,27 @@ def process_mortgage_data(filename: str) -> pd.DataFrame:
     df_monthly = df_monthly.sort_values(by="month")
 
     # Save cleaned version
-    out_path = PROCESSED_DIR / FRED_NAME_CLEAN
+    out_path = processed_dir / fred_name_clean
     df_monthly.to_csv(out_path, index=False)
 
     return df_monthly
 
 
 # Process Google Trends data
-def process_google_data(filename: str) -> pd.DataFrame:
-    print("Cleaning Google Trends data...")
+def process_google_data(
+        filename: str = GOOGLE_NAME, #:str makes sure filename is a string
+        data_dir: Path = DATA_DIR, #:Path makes sure directory is in path format
+        processed_dir: Path = PROCESSED_DIR,
+        google_name_clean: str = GOOGLE_NAME_CLEAN,
+        google_search_term: str = GOOGLE_SEARCH_TERM,
+        START_DATE=START_DATE,
+        END_DATE=END_DATE,
+    ) -> pd.DataFrame: #This is the CSV from Google Trends database
+
+    print(f"Cleaning {filename} from Google Trends...")
 
     # Get correct full path to data folder
-    full_path = DATA_DIR / filename
+    full_path = data_dir / filename
 
     # Load the CSV
     df = pd.read_csv(full_path)
@@ -119,32 +146,38 @@ def process_google_data(filename: str) -> pd.DataFrame:
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
 
     # Keep only the columns we need
-    df = df[["date", "homes for sale"]]
+    df = df[["date", google_search_term]]
 
     # Filter to 20 year range
     df = df[(df["date"] >= START_DATE) & (df["date"] <= END_DATE)]
 
     # Convert google score to numeric
-    df["homes for sale"] = pd.to_numeric(df["homes for sale"], errors="coerce")
+    df[google_search_term] = pd.to_numeric(df[google_search_term], errors="coerce")
 
     # Sort oldest to newest
     df = df.sort_values(by="date")
 
     # Save the cleaned version in the new processed folder
-    out_path = PROCESSED_DIR / GOOGLE_NAME_CLEAN
+    out_path = processed_dir / google_name_clean
     df.to_csv(out_path, index=False)
 
     return df
 
-
-def process_merge_data(): #This is what we use to merge the data we want from the 3 into 1 csv file
+def process_merge_data(  #This is what we use to merge the data we want from the 3 into 1 csv file
+        processed_dir: Path = PROCESSED_DIR,
+        kaggle_name_clean: str = KAGGLE_NAME_CLEAN,
+        google_name_clean: str = GOOGLE_NAME_CLEAN,
+        fred_name_clean: str = FRED_NAME_CLEAN,
+        merged_dir: Path = MERGED_CLEAN,
+        google_search_term: str = GOOGLE_SEARCH_TERM,
+    ):
     #Merges the cleaned realtor, google trends, and mortgage datasets into one monthly dataset and saves as merged.csv
     print("Further processing and merging data...")
 
     # Load processed datasets
-    realtor_path = PROCESSED_DIR / KAGGLE_NAME_CLEAN
-    google_path = PROCESSED_DIR / GOOGLE_NAME_CLEAN
-    mortgage_path = PROCESSED_DIR / FRED_NAME_CLEAN
+    realtor_path = processed_dir / kaggle_name_clean
+    google_path = processed_dir / google_name_clean
+    mortgage_path = processed_dir / fred_name_clean
 
     df_realtor = pd.read_csv(realtor_path)
     df_google = pd.read_csv(google_path)
@@ -166,7 +199,7 @@ def process_merge_data(): #This is what we use to merge the data we want from th
 
 
     # Google Trends to Monthly
-    df_google = df_google.rename(columns={"date": "month", "homes for sale": "search_interest"})
+    df_google = df_google.rename(columns={"date": "month", google_search_term: "search_interest"})
 
 
     # Mortgage Rates to Monthly
@@ -213,7 +246,7 @@ def process_merge_data(): #This is what we use to merge the data we want from th
 
 
     # Save
-    out_path = PROCESSED_DIR / MERGED_CLEAN
+    out_path = processed_dir / merged_dir
     df_merged.to_csv(out_path, index=False)
 
     return df_merged
@@ -222,8 +255,25 @@ def process_merge_data(): #This is what we use to merge the data we want from th
 if __name__ == "__main__":
     print("----------------------Running Data Cleaning/Processing----------------------")
     clear_processed_folder()
-    process_realtor_data(KAGGLE_NAME)
-    process_mortgage_data(FRED_NAME)
-    process_google_data(GOOGLE_NAME)
-    process_merge_data()
-    print("All data successfully cleaned and saved to data/processed folder.")
+
+    try:
+        process_realtor_data()
+    except Exception as e:
+        print("KAGGLE CSV FILE PROCESSING ERROR: Reason:", e)
+
+    try:
+        process_mortgage_data()
+    except Exception as e:
+        print("FRED CSV FILE PROCESSING ERROR: Reason:", e)
+
+    try:
+        process_google_data()
+    except Exception as e:
+        print("GOOGLE CSV FILE PROCESSING ERROR: Reason:", e)
+
+    try:
+        process_merge_data()
+    except Exception as e:
+        print("MERGING CSV FILE ERROR: Reason:", e)
+
+    print('Data Cleaning/Processing Complete: All successfully processed data will be saved to "data/processed/" folder.')

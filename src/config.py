@@ -25,8 +25,8 @@ RESULTS_DIR.mkdir(exist_ok=True)
 # ---------------------------------------------------
 # API KEYS from .env
 # ---------------------------------------------------
-KAGGLE_CONFIG_DIR = os.getenv("KAGGLE_CONFIG_DIR")
-FRED_API_KEY = os.getenv("FRED_API_KEY")
+KAGGLE_CONFIG_DIR = os.getenv("KAGGLE_CONFIG_DIR") #This should match same variable name from .env
+FRED_API_KEY = os.getenv("FRED_API_KEY") #This should match same variable name from .env
 
 # ---------------------------------------------------
 # Data Sources Configuration
@@ -34,14 +34,15 @@ FRED_API_KEY = os.getenv("FRED_API_KEY")
 KAGGLE_DATASET = 'ahmedshahriarsakib/usa-real-estate-dataset'
 FRED_SERIES_ID = "MORTGAGE30US"
 FRED_API_URL = f"https://api.stlouisfed.org/fred/series/observations"
+GOOGLE_SEARCH_TERM = "homes for sale"
 
 # ---------------------------------------------------
 # Data File Names
 # ---------------------------------------------------
 #Downloaded CSV Files
-KAGGLE_NAME = "realtor-data.zip.csv"
+KAGGLE_NAME = "kaggle_housing.csv"
 FRED_NAME = "mortgage_rates.csv"
-GOOGLE_NAME = "google_trends_homes_for_sale.csv"
+GOOGLE_NAME = "google_trends_" + GOOGLE_SEARCH_TERM + ".csv"
 
 #Processed/Clean CSV Files
 KAGGLE_NAME_CLEAN = "realtor_clean.csv"

@@ -14,69 +14,119 @@ from config import (
     KAGGLE_DATASET,
     FRED_SERIES_ID,
     FRED_API_URL,
+    GOOGLE_SEARCH_TERM,
     KAGGLE_NAME, FRED_NAME, GOOGLE_NAME,
     START_DATE, END_DATE, time_sleep,
 )
 
-def clear_data_folder():
+def clear_data_folder(data_dir=DATA_DIR):
     # ----- CLEAN DATA FOLDER BEFORE STARTING -----
-    for f in os.listdir(DATA_DIR):
+    for f in os.listdir(data_dir):
         if f.endswith(".csv"):
-            os.remove(DATA_DIR / f)
+            os.remove(data_dir / f)
     #print("Cleaned old CSV files from data directory.")
 
 
 #kaggle is also imported below but needs to be below path normalization because we're changing default location of kaggle API
 
 
-def kaggle_housing(): #kaggle is a website with databases for public use
+def kaggle_housing(data_dir=DATA_DIR, dataset=KAGGLE_DATASET, kaggle_config_dir = KAGGLE_CONFIG_DIR, KAGGLE_NAME = KAGGLE_NAME): #kaggle is a website with databases for public use
     #----------------------KAGGLE - Housing Prices Data Collection---------------------------
-    os.environ["KAGGLE_CONFIG_DIR"] = KAGGLE_CONFIG_DIR  # Location of Kaggle API Key found from .env file
-    #os.environ is a built-in Python dictionary that stores environment variables
+    #os.environ["KAGGLE_CONFIG_DIR"] = kaggle_config_dir  # Location of Kaggle API Key found from .env file
+    # Validate Kaggle config directory
+    try:
+        if not kaggle_config_dir or not os.path.isdir(kaggle_config_dir):
+            raise FileNotFoundError(
+                f"Kaggle config directory not found: {kaggle_config_dir}"
+            )
+
+        # Apply it ONLY after confirming it exists
+        os.environ["KAGGLE_CONFIG_DIR"] = kaggle_config_dir #os.environ is a built-in Python dictionary that stores environment variables
+
+    except Exception as e:
+        print("\nKAGGLE CONFIG ERROR: Kaggle configuration is invalid.")
+        print("Reason:", e)
+        print("Skipping Kaggle download...\n")
+        return
+
 
     #print("Using Kaggle config dir:", kaggle_config_dir)
 
-    import kaggle #This needs to be here after environment variable is set
-    print("Fetching Housing Price data from Kaggle...")
+
+    try:
+        import kaggle #This needs to be here after environment variable is set
+    except Exception as e:
+        print("KAGGLE IMPORT ERROR: This usually means your kaggle.json file is missing or invalid.")
+        print(f"Expected kaggle.json in: {kaggle_config_dir}")
+        print("Reason:", e)
+        print("Skipping Kaggle download...")
+        return #Stops kaggle_housing from continuing
+    # -------------------------
+    print(f"Fetching Kaggle Data: ({dataset})...")
 
     #Download dataset from Kaggle
-    kaggle.api.dataset_download_files(KAGGLE_DATASET, path=DATA_DIR, unzip=True)  # connect to Kaggle using API key
+    try:
+        kaggle.api.dataset_download_files(dataset, path=data_dir, unzip=True)
+    except Exception as e:
+        print(f"KAGGLE DOWNLOAD ERROR: Dataset attempted: {dataset}")
+        print("Reason:", e)
+        print("Skipping Kaggle download...\n")
+        return #Stops kaggle_housing from continuing
 
 
     #and save to data directory created above. Unzip it automatically since its normally a zipped file
 
     #Find and load CSV file from the zip folder and put it into data folder
     #From this Kaggle dataset, there's only one CSV file so no need to tweak this code. It's good enough
-    csv_file = [f for f in os.listdir(DATA_DIR) if f.endswith('.csv')][0]
-    if not csv_file:
-        raise FileNotFoundError("No CSV found after downloading Kaggle dataset")
 
+    csv_files = [f for f in os.listdir(data_dir) if f.lower().endswith(".csv")]
+    # One final check if no CSV found -> dataset failed or was corrupt
+    if not csv_files:
+        print("KAGGLE DOWNLOAD ERROR: No CSV found in extracted files.")
+        print("Skipping Kaggle download...\n")
+        return
 
-    #df = pd.read_csv(csv_path)
-    #print("Data loaded:", df.shape)
-    #print(df.columns)
-    original_csv_path = DATA_DIR / csv_file
-    new_csv_path = DATA_DIR / KAGGLE_NAME
+    # If multiple CSVs, warn but continue with the first
+    if len(csv_files) > 1:
+        print("KAGGLE DOWNLOAD WARNING: Multiple CSV files found from Kaggle dataset.")
+        print("Using the first one:", csv_files[0])
 
-    # Rename/move the file to your chosen name
-    os.rename(original_csv_path, new_csv_path)
+    csv_file = csv_files[0]
+    original_csv_path = data_dir / csv_file
+    new_csv_path = data_dir / KAGGLE_NAME
+
+    # Rename/move the file to your chosen name. I put an error check here just in case
+    try:
+        os.rename(original_csv_path, new_csv_path)
+    except Exception as e:
+        print("KAGGLE DOWNLOAD ERROR: Could not rename Kaggle CSV file.")
+        print("Reason:", e)
+        print("Skipping Kaggle renaming...\n")
+        return
     #-----------------------------------------------------------------------------------------------
 
 
-def FRED_mortgage(): #FRED is the federal reserve database to pull mortgage rates from
+def FRED_mortgage(api_key=FRED_API_KEY, series_id=FRED_SERIES_ID, data_dir=DATA_DIR, FRED_NAME = FRED_NAME): #FRED is the federal reserve database to pull mortgage rates from
     #----------------------FRED - 30-Year Fixed Mortgage Rates---------------------------
 
     #settings parameters before accessing FRED
     params = {
-        "series_id": FRED_SERIES_ID,
-        "api_key": FRED_API_KEY,
+        "series_id": series_id,
+        "api_key": api_key,
         "file_type": "json"
     }
 
     #Request data from FRED
-    print(f"Fetching 30-Year Fixed Mortgage Rates ({FRED_SERIES_ID}) from FRED...")
-    response = requests.get(FRED_API_URL, params=params)
-    response.raise_for_status()  # Raises an error if request failed
+    print(f"Fetching FRED Data: ({series_id})...")
+    try:
+        response = requests.get(FRED_API_URL, params=params)
+        response.raise_for_status()   # this will error for bad API or series ID
+
+    except Exception as e:
+        print(f"\nFRED API request failed - Series attempted: {series_id}")
+        print("Reason:", e)
+        print("Skipping FRED download and continuing...\n")
+        return
 
     data = response.json()
     observations = data.get("observations", [])
@@ -89,7 +139,7 @@ def FRED_mortgage(): #FRED is the federal reserve database to pull mortgage rate
     #print(f"Data successfully loaded: {df.shape[0]} records")
 
     #Save raw data to CSV
-    output_path = DATA_DIR / FRED_NAME
+    output_path = data_dir / FRED_NAME
     df.to_csv(output_path, index=False)
 
     #print(f"Mortgage rate data saved to: {output_path}")
@@ -98,13 +148,28 @@ def FRED_mortgage(): #FRED is the federal reserve database to pull mortgage rate
 
 
 
-def GTrends_Homes_Selling(time_sleep): #Google Trends records trends in how people search on Google
-    #------------------------------Google Trends - "Homes for sale"------------------------------
+def GTrends_Homes_Selling(time_sleep=time_sleep, kw=GOOGLE_SEARCH_TERM, data_dir=DATA_DIR, GOOGLE_NAME = GOOGLE_NAME, START_DATE = START_DATE, END_DATE = END_DATE ): #Google Trends records trends in how people search on Google
+    #------------------------------Google Trends - Default: "Homes for sale"------------------------------
 
     #No API needed for this one but access is limited
 
+    #==========Before anything, check that the time_sleep is actually valid========
+    #I decided to put this code here and not in tests.py or config.py because putting it here will prevent crashes regardless of run method
+    # Must be an integer
+    if not isinstance(time_sleep, int) or time_sleep < 1 or time_sleep > 40:
+        print(f"Invalid sleep time '{time_sleep}' — must be an integer between 1 and 40. Defaulting to 20")
+        time_sleep = 20
+    #=========================================
+
+
+    # ==========Now make sure the keyword is actually valid========
+    if (not isinstance(kw, str)) or (kw.strip() == "") or (len(kw.split()) > 10):
+        print(f"Invalid keyword '{kw}' — must be a non-empty string under 10 words. Defaulting to 'homes for sale'.")
+        kw = "homes for sale"
+    #=========================================
+
     #Download Google Search Interest Data (via pytrends) ---
-    print("Fetching Google Trends data for 'homes for sale'...")
+    print(f'Fetching Google Trends data for "{kw}"...')
 
     #Create a clean Trends session with explicit connection headers to avoid being banned as a bot similar to HW assignment
     pytrends = TrendReq(
@@ -125,8 +190,19 @@ def GTrends_Homes_Selling(time_sleep): #Google Trends records trends in how peop
     #time.sleep(20)
 
     #Pick data we want
-    kw_list = ["homes for sale"] #search term we're working with
-    pytrends.build_payload(kw_list, timeframe=f"{START_DATE} {END_DATE}", geo='US')  # set timeframe (20 years)
+    kw_list = [kw] #search term we're working with
+
+    try:
+        pytrends.build_payload(kw_list, timeframe=f"{START_DATE} {END_DATE}", geo='US')  # set timeframe (20 years)
+    except Exception as e:
+        print("DATE FORMAT/RANGE ERROR: Your dates are invalid. Change the format and/or range.")
+        print("Reverting to default 2004-12-31 to 2024-12-31.")
+        print("Reason:", e)
+
+        # Default fail-safe values
+        START_DATE_default = "2004-12-31"
+        END_DATE_default = "2024-12-31"
+        pytrends.build_payload(kw_list, timeframe=f"{START_DATE_default} {END_DATE_default}", geo='US')  # set timeframe (20 years)
 
     #Pause again before fetch
     print(f"Please wait {time_sleep} seconds . . .")
@@ -136,10 +212,10 @@ def GTrends_Homes_Selling(time_sleep): #Google Trends records trends in how peop
 
     #Check
     if df_trends.empty:
-        raise ValueError("No data returned from Google Trends for 'homes for sale'")
+        raise ValueError(f"No data returned from Google Trends for '{kw}'")
 
     #Save
-    output_path = DATA_DIR / GOOGLE_NAME
+    output_path = data_dir / GOOGLE_NAME
     df_trends.to_csv(output_path)
     #print(f"Google Trends data saved to: {output_path}")
     #print("Data loaded:", df_trends.shape)
@@ -154,6 +230,6 @@ if __name__ == "__main__":
     kaggle_housing()
     FRED_mortgage()
     GTrends_Homes_Selling()
-    print('All data successfully collected and saved to "Data" folder.')
+    print('Data Collection Complete: All successfully collected data will be saved to "data" folder.')
 
 

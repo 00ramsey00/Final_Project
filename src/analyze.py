@@ -13,24 +13,21 @@ from config import (
     HEATMAP_NAME, PAIRPLOT_NAME,
 )
 
-def clear_results_folder():
+def clear_results_folder(results_dir=RESULTS_DIR):
     # ----- CLEAN RESULTS FOLDER BEFORE STARTING -----
-    for f in os.listdir(RESULTS_DIR):
+    for f in os.listdir(results_dir):
         if f.endswith(".png"):
-            os.remove(RESULTS_DIR / f)
+            os.remove(results_dir / f)
     #print("Cleaned old CSV files from data/processed directory.")
 
-def save_plot(filename): #Saves the current matplotlib figure to the results folder as a png file
-    ####results_dir = get_results_folder()
-    ####full_path = os.path.join(results_dir, filename)
-    out_path = RESULTS_DIR / filename
-    ####plt.savefig(full_path)
+def save_plot(filename, results_dir = RESULTS_DIR): #Saves the current matplotlib figure to the results folder as a png file
+    out_path = results_dir / filename
     plt.savefig(out_path)
     #print(f"Saved: {full_path}")
 
 
-def load_merged_data(): #Loads the merged.csv dataset for use in making the graphs
-    merged_path = PROCESSED_DIR / MERGED_CLEAN
+def load_merged_data(processed_dir = PROCESSED_DIR, merged_dir = MERGED_CLEAN ): #Loads the merged.csv dataset for use in making the graphs
+    merged_path = processed_dir / merged_dir
     df = pd.read_csv(merged_path)
 
     # Convert month column back into datetime so Python can work with it
@@ -42,7 +39,7 @@ def load_merged_data(): #Loads the merged.csv dataset for use in making the grap
 # -----------------------------------------------------------
 # Line Plot - All variables over time
 # -----------------------------------------------------------
-def plot_time_series(df): #Basic graph of Housing Prices VS Mortgage Rates VS Google Search Score
+def plot_time_series(df, results_dir = RESULTS_DIR): #Basic graph of Housing Prices VS Mortgage Rates VS Google Search Score
     # Make the base plot
     fig, ax1 = plt.subplots(figsize=(12,6))
 
@@ -87,14 +84,14 @@ def plot_time_series(df): #Basic graph of Housing Prices VS Mortgage Rates VS Go
     plt.tight_layout()
 
     # Save and show
-    save_plot(TIME_SERIES_NAME)
+    save_plot(TIME_SERIES_NAME,results_dir)
     #plt.show()
 
 
 # -----------------------------------------------------------
 # Line Plot - All variables over time smoothed (Moving Average)
 # -----------------------------------------------------------
-def plot_time_series_smoothed(df): #Same as above but 6 month moving average to smooth out zig zags
+def plot_time_series_smoothed(df, results_dir = RESULTS_DIR): #Same as above but 6 month moving average to smooth out zig zags
 
     # Make a copy so we don't modify the original df
     smooth = df.copy()
@@ -155,7 +152,7 @@ def plot_time_series_smoothed(df): #Same as above but 6 month moving average to 
     plt.tight_layout()
 
     # Save to results folder
-    save_plot(SMOOTH_SERIES_NAME)
+    save_plot(SMOOTH_SERIES_NAME,results_dir)
     #plt.show()
 
 
@@ -163,7 +160,7 @@ def plot_time_series_smoothed(df): #Same as above but 6 month moving average to 
 # -----------------------------------------------------------
 # Scatter: Search Interest vs Mortgage Rate
 # -----------------------------------------------------------
-def plot_scatter_search_vs_mortgage(df):
+def plot_scatter_search_vs_mortgage(df, results_dir = RESULTS_DIR):
     plt.figure(figsize=(8,6))
 
     # Scatter with search on X
@@ -185,7 +182,7 @@ def plot_scatter_search_vs_mortgage(df):
     plt.grid(True)
     plt.tight_layout()
 
-    save_plot(GOOGLE_FRED_NAME)
+    save_plot(GOOGLE_FRED_NAME,results_dir)
     #plt.show()
 
 
@@ -193,7 +190,7 @@ def plot_scatter_search_vs_mortgage(df):
 # -----------------------------------------------------------
 # Scatter: Search Interest vs Average Price
 # -----------------------------------------------------------
-def plot_scatter_search_vs_price(df):
+def plot_scatter_search_vs_price(df, results_dir = RESULTS_DIR):
     plt.figure(figsize=(8,6))
 
     plt.scatter(df["search_interest"], df["avg_price"], alpha=0.5, label="Data Points")
@@ -213,7 +210,7 @@ def plot_scatter_search_vs_price(df):
     plt.grid(True)
     plt.tight_layout()
 
-    save_plot(GOOGLE_KAGGLE_NAME)
+    save_plot(GOOGLE_KAGGLE_NAME,results_dir)
     #plt.show()
 
 
@@ -222,7 +219,7 @@ def plot_scatter_search_vs_price(df):
 # -----------------------------------------------------------
 # Correlation Heatmap
 # -----------------------------------------------------------
-def plot_correlation_heatmap(df):
+def plot_correlation_heatmap(df, results_dir = RESULTS_DIR):
     corr = df[["avg_price", "mortgage_rate", "search_interest"]].corr()
 
     plt.figure(figsize=(6,4))
@@ -231,7 +228,7 @@ def plot_correlation_heatmap(df):
     plt.title("Correlation Heatmap")
     plt.tight_layout()
 
-    save_plot(HEATMAP_NAME)
+    save_plot(HEATMAP_NAME,results_dir)
     #plt.show()
 
     #print("\nCorrelation Matrix:")
@@ -241,7 +238,7 @@ def plot_correlation_heatmap(df):
 # -----------------------------------------------------------
 # Pair Plot
 # -----------------------------------------------------------
-def plot_pairplot(df):
+def plot_pairplot(df, results_dir = RESULTS_DIR):
     # Keep ONLY the 3 core variables
     plot_df = df[["avg_price", "mortgage_rate", "search_interest"]]
 
@@ -256,7 +253,7 @@ def plot_pairplot(df):
         }
     )
     plt.suptitle("Pair Plot: Avg Price, Mortgage Rate, Search Interest", y=1.02)
-    save_plot(PAIRPLOT_NAME)
+    save_plot(PAIRPLOT_NAME,results_dir)
 
     #plt.show()
 
@@ -269,18 +266,22 @@ if __name__ == "__main__":
     print("----------------------Running Data Analysis----------------------")
     clear_results_folder()
     # Load merged data
-    df = load_merged_data()
+    try:
+        df = load_merged_data()
 
     #print("\nLoaded merged dataset:")
     #print(df.head())
 
     # Generate and save all plots
-    plot_time_series(df)
-    plot_time_series_smoothed(df)
-    plot_scatter_search_vs_mortgage(df)
-    plot_scatter_search_vs_price(df)
-    plot_correlation_heatmap(df)
-    plot_pairplot(df)
-    print('All graphs generated and saved to the "results" folder.')
+        plot_time_series(df)
+        plot_time_series_smoothed(df)
+        plot_scatter_search_vs_mortgage(df)
+        plot_scatter_search_vs_price(df)
+        plot_correlation_heatmap(df)
+        plot_pairplot(df)
+    except Exception as e:
+        print("ANALYSIS RESULTS GENERATION ERROR: Reason:", e)
+
+    print('Data Analysis Complete: All successfully generated graphs will be saved to "results/" folder.')
 
 

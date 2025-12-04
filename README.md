@@ -1,6 +1,6 @@
 # Title: The Relationship Between Online Housing Interest, Mortgage Rates, and Home Prices
 
-This project explores whether housing demand (via google searches) moves with mortgage rates and prices. By analyzing median home prices, 30-year mortgage rates, and Google search interest (for the 20 years), the study aims to uncover how public interest and mortgage rates together predict housing market trends. 
+This project explores whether housing demand (via google searches) moves with mortgage rates and prices. By analyzing median home prices, 30-year mortgage rates, and Google search interest (for the past 20 years), the study aims to uncover how public interest and mortgage rates together predict housing market trends. 
 
 By using time-series analysis, smoothed trend lines, correlation matrices, and regression plots of publicly available data, the project will assess correlations, providing insights into how early indicators like Google Trends might anticipate changes in housing affordability and market activity. All data collection, processing, and analyzing is completed using a fully automated Python pipeline, publicly available on GitHub.
 
@@ -74,7 +74,7 @@ By using time-series analysis, smoothed trend lines, correlation matrices, and r
 
 ## Installation
 
-In `.env.example` file, set the following and rename to `.env`:
+In `.env.example` file, set the following and then rename to `.env`:
 
 ```
 KAGGLE_CONFIG_DIR= #Folder location of your kaggle.json file
@@ -109,8 +109,8 @@ json             # Parses and converts data between JSON and Python dictionaries
 
 ## Running Program
 
-### Option 1: Python: Run ALL (Data Collection, Processing, and Analyzing) Directly from `tests.py` file
-From `src/` directory, open and run `tests.py`  
+### Option 1: Python: Run ALL (Data Collection, Processing, and Analyzing) Directly from `main.py` file
+From `src/` directory, open and run `main.py`  
 
 Data will appear in `data/` folder.
 
@@ -129,7 +129,7 @@ From `src/` directory:
  run:
 
 ```
-python tests.py --load
+python main.py --load
 ```
 
 Data will appear in `data/` folder.
@@ -137,7 +137,7 @@ Data will appear in `data/` folder.
 Optional: To adjust the sleep time between google requests, input:
 
 ```
-python tests.py --load --sleep 15
+python main.py --load --sleep 15
 ```
 
 
@@ -152,7 +152,7 @@ From `src/` directory:
  run:
 
 ```
-python tests.py --process
+python main.py --process
 ```
 
 Processed data will appear in `data/processed` folder.
@@ -164,7 +164,7 @@ From `src/` directory:
  run:
 
 ```
-python tests.py --analyze
+python main.py --analyze
 ```
 
 Results will appear in `results/` folder.
@@ -180,13 +180,13 @@ From `src/` directory:
  run:
 
 ```
-python tests.py --all
+python main.py --all
 ```  
 
 OR
 
 ```
-python tests.py
+python main.py
 ```  
 
 
@@ -201,7 +201,7 @@ Results will appear in `results/` folder.
 Optionally run:
 
 ```
-python tests.py --all --sleep 15
+python main.py --all --sleep 15
 ```
 Similar to above
 
@@ -211,7 +211,40 @@ Similar to above
 
 You may adjust output filenames and even the analysis date range in the `config.py` file.
 
+---
 
+## Testing Program
 
+### Python: Open tests.py to test variable changing, and each of the piplelines
 
-Thank you!
+-Feel free to change any of the variables that have "***************" at the end of the line.
+
+-tests.py inputs bypasses both config.py and main.py
+
+-Input kaggle.json directory and FRED API key directly into tests.py. Don't forget to remove this information after use.
+
+-Running tests.py will generate a test folder within src/
+
+-It is important to note that almost all parameters can be changed within tests.py but the code is still only designed to use the 3 default datasets. In other words, if the csv files generated from the data pull have different headers then an error will be raised. Certain things can be changed with no issue such as the specific google search term and some similar FRED series since the csv files will have the same headers but different values. 
+
+For example, this project by default compares Kaggle housing data ('ahmedshahriarsakib/usa-real-estate-dataset') VS 30 year fixed mortgage rates VS Google Search Popularity for "Homes for sale." 
+
+However, 'ahmedshahriarsakib/usa-real-estate-dataset' VS USA Gross Domestic Product VS "best coffee" will work just fine and successfully generate graphs!
+
+---
+
+## Error Handling Notes
+
+-This program utilizes several error handling methods throughout the code to catch many types of mistakes. 
+
+-As a beginner to Python, I realize error catching can be performed either as an overarching net at the main run lines (such as in main.py) or specifically within individual pipelines (such as load.py, process.py ,etc.). The error handling codes would either be in one or the other, not both (to avoid redundancy).
+
+-The negatives of using error handling in main.py is that it does not carry over to tests.py and so tests.py would need to have its own error handling. Additionally, an overarching net in main.py for each of the functions does not provide specific error messages which can be created by the programmer, rather it generates whichever error messages Python spits out.
+
+-However, for this project, it is cleaner to have overarching nets in order to keep the individual pipelines from being cluttered with error handling safeguards at each function.
+
+-In this project, I utilized both methods to prove comprehension. Specifically, load.py contains several specific error catching methods within load.py itself whereas process.py and analyze.py do not contain error handling but is handled via an overarching net when being run from main.py or tests.py. In other words, if 1 function has 20 actions within it, either the 1 function can be encased in a try/except OR each of the individual 20 actions can each be encased in their own try/except.
+
+---
+
+## Thank you!
