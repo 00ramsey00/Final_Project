@@ -61,7 +61,8 @@ By using time-series analysis, smoothed trend lines, correlation matrices, and r
 **Not prices but rates do** — Higher the rates, lower the general public’s 	interest in purchasing a home.
 
 ### **Any future considerations?**
-**Yes** — consider additional housing price data with more precise filters, include additional Google search terms (currently limited by amount of requests), consider shorter analysis periods with major events removed.
+**Yes** — consider additional housing price data with more precise filters, include additional Google search terms (currently limited by amount of requests), consider shorter analysis periods with major events removed. Also consider filtering by summer or winter. Graph consistently shows clear changes into winter of each year.
+
 
 ### **Additional Notes:**
 -Though the real estate data contained over 2 million data points, it could still be skewed in terms of whether some states had more data than others or whether more data was collected in specific years than others.

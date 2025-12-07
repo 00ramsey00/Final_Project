@@ -13,6 +13,7 @@ from config import (
     HEATMAP_NAME, PAIRPLOT_NAME,
 )
 
+
 def clear_results_folder(results_dir=RESULTS_DIR):
     # ----- CLEAN RESULTS FOLDER BEFORE STARTING -----
     for f in os.listdir(results_dir):
@@ -21,6 +22,7 @@ def clear_results_folder(results_dir=RESULTS_DIR):
     #print("Cleaned old CSV files from data/processed directory.")
 
 def save_plot(filename, results_dir = RESULTS_DIR): #Saves the current matplotlib figure to the results folder as a png file
+
     out_path = results_dir / filename
     plt.savefig(out_path)
     #print(f"Saved: {full_path}")
@@ -45,8 +47,8 @@ def plot_time_series(df, results_dir = RESULTS_DIR): #Basic graph of Housing Pri
 
     # First axis (home prices)
     ax1.plot(df["month"], df["avg_price"] / 1000, color="blue", label="Avg Home Price")
-    ax1.set_ylabel("Avg Home Price (K$)", color="blue")
-    ax1.tick_params(axis="y", labelcolor="blue")
+    ax1.set_ylabel("Avg Home Price (K$)", color="blue", fontsize=16)
+    ax1.tick_params(axis="y", labelcolor="blue", labelsize=12)
 
     # Add gridlines on the main axis
     ax1.grid(True)
@@ -55,20 +57,20 @@ def plot_time_series(df, results_dir = RESULTS_DIR): #Basic graph of Housing Pri
     # Second axis (mortgage rate)
     ax2 = ax1.twinx()
     ax2.plot(df["month"], df["mortgage_rate"], color="red", label="Mortgage Rate")
-    ax2.set_ylabel("Mortgage Rate (%)", color="red")
-    ax2.tick_params(axis="y", labelcolor="red")
+    ax2.set_ylabel("Mortgage Rate (%)", color="red", fontsize=16)
+    ax2.tick_params(axis="y", labelcolor="red", labelsize=12)
 
 
     # Third axis (search interest)
     ax3 = ax1.twinx()
-    ax3.spines.right.set_position(("axes", 1.06))
+    ax3.spines.right.set_position(("axes", 1.08))
     ax3.plot(df["month"], df["search_interest"], color="green", label="Search Interest")
-    ax3.set_ylabel("Search Interest", color="green")
-    ax3.tick_params(axis="y", labelcolor="green")
+    ax3.set_ylabel("Search Interest", color="green", fontsize=16)
+    ax3.tick_params(axis="y", labelcolor="green", labelsize=12)
 
     # Make x-axis show only years instead of every month
     ax1.set_xticks(df["month"][df["month"].dt.month == 1])
-    ax1.set_xticklabels(df["month"][df["month"].dt.month == 1].dt.strftime("%Y"))
+    ax1.set_xticklabels(df["month"][df["month"].dt.month == 1].dt.strftime("%Y"), fontsize=12)
 
     # Combined legend
     line1 = ax1.get_lines()[0]
@@ -77,11 +79,13 @@ def plot_time_series(df, results_dir = RESULTS_DIR): #Basic graph of Housing Pri
 
     plt.legend([line1, line2, line3],
                ["Avg Home Price", "Mortgage Rate", "Search Interest"],
-               loc="upper left")
+               loc="upper left", fontsize=14)
 
     # Title and layout
-    plt.title("Housing Market Trends (2004–2024)")
+    plt.title("Housing Market Trends (2004–2024)", fontsize=20)
     plt.tight_layout()
+
+
 
     # Save and show
     save_plot(TIME_SERIES_NAME,results_dir)
@@ -112,8 +116,8 @@ def plot_time_series_smoothed(df, results_dir = RESULTS_DIR): #Same as above but
     # First axis (home prices)
     ax1.plot(smooth["month"], smooth["avg_price_smooth"] / 1000,
              color="blue", linewidth=2, label="Avg Home Price (Smoothed)")
-    ax1.set_ylabel("Avg Home Price (K$)", color="blue")
-    ax1.tick_params(axis="y", labelcolor="blue")
+    ax1.set_ylabel("Avg Home Price (K$)", color="blue", fontsize=16)
+    ax1.tick_params(axis="y", labelcolor="blue", labelsize=12)
     ax1.grid(True)
 
 
@@ -121,21 +125,21 @@ def plot_time_series_smoothed(df, results_dir = RESULTS_DIR): #Same as above but
     ax2 = ax1.twinx()
     ax2.plot(smooth["month"], smooth["mortgage_smooth"],
              color="red", linewidth=2, label="Mortgage Rate (Smoothed)")
-    ax2.set_ylabel("Mortgage Rate (%)", color="red")
-    ax2.tick_params(axis="y", labelcolor="red")
+    ax2.set_ylabel("Mortgage Rate (%)", color="red", fontsize=16)
+    ax2.tick_params(axis="y", labelcolor="red", labelsize=12)
 
 
     # Third axis (search interest)
     ax3 = ax1.twinx()
-    ax3.spines.right.set_position(("axes", 1.06))
+    ax3.spines.right.set_position(("axes", 1.08))
     ax3.plot(smooth["month"], smooth["search_smooth"],
              color="green", linewidth=2, label="Search Interest (Smoothed)")
-    ax3.set_ylabel("Search Interest", color="green")
-    ax3.tick_params(axis="y", labelcolor="green")
+    ax3.set_ylabel("Search Interest", color="green", fontsize=16)
+    ax3.tick_params(axis="y", labelcolor="green", labelsize=12)
 
     # Make x-axis show only years instead of every month
     ax1.set_xticks(df["month"][df["month"].dt.month == 1])
-    ax1.set_xticklabels(df["month"][df["month"].dt.month == 1].dt.strftime("%Y"))
+    ax1.set_xticklabels(df["month"][df["month"].dt.month == 1].dt.strftime("%Y"), fontsize=12)
 
 
     # Legend
@@ -146,9 +150,9 @@ def plot_time_series_smoothed(df, results_dir = RESULTS_DIR): #Same as above but
     )
     labels = [l.get_label() for l in lines]
 
-    plt.legend(lines, labels, loc="upper left")
+    plt.legend(lines, labels, loc="upper left", fontsize=14)
 
-    plt.title("Smoothed Housing Market Trends (6-Month Moving Average)")
+    plt.title("Smoothed Housing Market Trends (6-Month Moving Average)", fontsize=20)
     plt.tight_layout()
 
     # Save to results folder
@@ -175,10 +179,12 @@ def plot_scatter_search_vs_mortgage(df, results_dir = RESULTS_DIR):
         label="Trend Line"
     )
 
-    plt.title("Search Interest vs Mortgage Rate")
-    plt.xlabel("Search Interest")
-    plt.ylabel("Mortgage Rate (%)")
-    plt.legend()
+    plt.title("Search Interest vs Mortgage Rate", fontsize=20)
+    plt.xlabel("Search Interest", fontsize=16)
+    plt.ylabel("Mortgage Rate (%)", fontsize=16)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.legend(fontsize=14)
     plt.grid(True)
     plt.tight_layout()
 
@@ -203,10 +209,12 @@ def plot_scatter_search_vs_price(df, results_dir = RESULTS_DIR):
         label="Trend Line"
     )
 
-    plt.title("Search Interest vs Average Price")
-    plt.xlabel("Search Interest")
-    plt.ylabel("Average Home Price")
-    plt.legend()
+    plt.title("Search Interest vs Average Price", fontsize=20)
+    plt.xlabel("Search Interest", fontsize=16)
+    plt.ylabel("Average Home Price (mil $)", fontsize=16)
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.legend(fontsize=14)
     plt.grid(True)
     plt.tight_layout()
 
@@ -222,10 +230,12 @@ def plot_scatter_search_vs_price(df, results_dir = RESULTS_DIR):
 def plot_correlation_heatmap(df, results_dir = RESULTS_DIR):
     corr = df[["avg_price", "mortgage_rate", "search_interest"]].corr()
 
-    plt.figure(figsize=(6,4))
-    sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f")
+    plt.figure(figsize=(8,4))
+    sns.heatmap(corr, annot=True, annot_kws={"size": 14}, cmap="coolwarm", fmt=".2f")
 
-    plt.title("Correlation Heatmap")
+    plt.title("Correlation Heatmap", fontsize=20)
+    plt.xticks(fontsize=11)
+    plt.yticks(fontsize=11)
     plt.tight_layout()
 
     save_plot(HEATMAP_NAME,results_dir)
@@ -243,7 +253,7 @@ def plot_pairplot(df, results_dir = RESULTS_DIR):
     plot_df = df[["avg_price", "mortgage_rate", "search_interest"]]
 
     # Create the pair plot
-    sns.pairplot(
+    g = sns.pairplot(
         plot_df,
         diag_kind="hist",      # histograms on diagonal
         kind="reg",            # regression line in scatter plots
@@ -252,7 +262,15 @@ def plot_pairplot(df, results_dir = RESULTS_DIR):
             "scatter_kws": {"alpha": 0.5}
         }
     )
-    plt.suptitle("Pair Plot: Avg Price, Mortgage Rate, Search Interest", y=1.02)
+
+    # Set font sizes for labels
+    for ax in g.axes.flatten():
+        if ax is not None:
+            ax.set_xlabel(ax.get_xlabel(), fontsize=16)
+            ax.set_ylabel(ax.get_ylabel(), fontsize=16)
+            ax.tick_params(axis="both", labelsize=12)
+
+
     save_plot(PAIRPLOT_NAME,results_dir)
 
     #plt.show()
